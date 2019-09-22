@@ -363,8 +363,17 @@ class MathHooks {
 				'\1 $' . htmlspecialchars( $tag[0]->getTex() ) . '\2</mw:editsection>', $text );
 			$text = str_replace( $key, $value, $text );
 		}
+
 		// This hook might be called multiple times. However one the tags are rendered the job is done.
-		self::$tags = [];
+		//
+		// == patch from Wei ==
+		// It seems GraphViz extension would cause mediawiki to call parser->parse() function to get something,
+		// and the parser->parse() function would finally call this onParserAfterTidy() before the real calling
+		// from the Math extension, so that to incorrectly clear this self::$tags[] array, and generate the
+		// wrong wiki contents. So I have to comment our the following line to prevent this.
+		//
+		// self::$tags = [];
+
 		return true;
 	}
 
