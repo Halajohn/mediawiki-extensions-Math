@@ -39,7 +39,9 @@
 		"MathDataUpdater": "src/MathDataUpdater.php",
 		"MathWikibaseConfig": "src/MathWikibaseConfig.php",
 		"MathWikibaseConnector": "src/MathWikibaseConnector.php",
-		"MathWikibaseInfo": "src/MathWikibaseInfo.php",
+		"MathWikibaseInfo": "src/MathWikibaseInfo.php"
+	},
+	"TestAutoloadClasses": {
 		"MathMLHttpRequestTester": "tests/phpunit/MathMLHttpRequestTester.php",
 		"MathMLTestStatus": "tests/phpunit/MathMLTestStatus.php",
 		"DummyPropertyDataTypeLookup": "tests/phpunit/DummyPropertyDataTypeLookup.php"
@@ -75,6 +77,9 @@
 		],
 		"ParserAfterTidy": [
 			"MathHooks::onParserAfterTidy"
+		],
+		"SpecialPage_initList": [
+			"MathHooks::onSpecialPage_initList"
 		]
 	},
 	"config": {
@@ -117,7 +122,7 @@
 			"mathml"
 		],
 		"MathEnableWikibaseDataType": true,
-		"MathEnableFormulaLinks": false,
+		"MathEnableFormulaLinks": true,
 		"MathWikibasePropertyIdHasPart": "P527",
 		"MathWikibasePropertyIdDefiningFormula": "P2534",
 		"MathWikibasePropertyIdQuantitySymbol": "P416"

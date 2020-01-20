@@ -237,7 +237,7 @@ class SpecialMathWikibase extends SpecialPage {
 
 	/**
 	 * Generates a header as HTML
-	 * @param $header
+	 * @param string $header
 	 * @return string
 	 */
 	private static function createHTMLHeader( $header ) {
@@ -249,7 +249,7 @@ class SpecialMathWikibase extends SpecialPage {
 
 	/**
 	 * Check whether Wikibase is available or not
-	 * @return true|false
+	 * @return bool
 	 */
 	public static function isWikibaseAvailable() {
 		return class_exists( '\Wikibase\Client\WikibaseClient' );
