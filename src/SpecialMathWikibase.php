@@ -1,13 +1,12 @@
 <?php
 
-
 use MediaWiki\Logger\LoggerFactory;
 
 class SpecialMathWikibase extends SpecialPage {
 	/**
 	 * The parameter for this special page
 	 */
-	const PARAMETER = "qid";
+	private const PARAMETER = "qid";
 
 	/**
 	 * @var MathWikibaseConnector Wikibase connection
@@ -19,15 +18,8 @@ class SpecialMathWikibase extends SpecialPage {
 	 */
 	private $logger;
 
-	/**
-	 * SpecialMathWikibase constructor.
-	 */
 	public function __construct() {
-		parent::__construct(
-			'MathWikibase',
-			'', // no restriciton
-			true // show on Special:SpecialPages
-		);
+		parent::__construct( 'MathWikibase' );
 
 		$this->logger = LoggerFactory::getInstance( 'Math' );
 	}
@@ -36,7 +28,7 @@ class SpecialMathWikibase extends SpecialPage {
 	 * @inheritDoc
 	 */
 	public function execute( $par ) {
-		global $wgContLanguageCode;
+		global $wgLanguageCode;
 
 		if ( !$this->isWikibaseAvailable() ) {
 			$out = $this->getOutput();
@@ -45,7 +37,7 @@ class SpecialMathWikibase extends SpecialPage {
 				$this->getPlainText( 'math-wikibase-special-error-header' )
 			);
 			$out->addHTML(
-				wfMessage( 'math-wikibase-special-error-no-wikibase' )->inContentLanguage()
+				wfMessage( 'math-wikibase-special-error-no-wikibase' )->inContentLanguage()->parse()
 			);
 			return;
 		}
@@ -68,7 +60,7 @@ class SpecialMathWikibase extends SpecialPage {
 		);
 
 		// Get request
-		$requestId = $request->getText( self::PARAMETER );
+		$requestId = $request->getText( self::PARAMETER, $par );
 
 		// if there is no id requested, show the request form
 		if ( !$requestId ) {
@@ -76,7 +68,7 @@ class SpecialMathWikibase extends SpecialPage {
 		} else {
 			$this->logger->debug( "Request qID: " . $requestId );
 			try {
-				$info = $this->wikibase->fetchWikibaseFromId( $requestId, $wgContLanguageCode );
+				$info = $this->wikibase->fetchWikibaseFromId( $requestId, $wgLanguageCode );
 				$this->logger->debug( "Successfully fetched information for qID: " . $requestId );
 				self::buildPageRepresentation( $info, $requestId, $output );
 			} catch ( Exception $e ) {
@@ -130,14 +122,14 @@ class SpecialMathWikibase extends SpecialPage {
 		if ( $e instanceof InvalidArgumentException ) {
 			$this->logger->warning( "An invalid ID was specified. Reason: " . $e->getMessage() );
 			$this->getOutput()->addHTML(
-				wfMessage( 'math-wikibase-special-error-invalid-argument' )->inContentLanguage()
+				wfMessage( 'math-wikibase-special-error-invalid-argument' )->inContentLanguage()->parse()
 			);
 		} else {
 			$this->logger->error( "An unknown error occured due fetching data from Wikibase.", [
 				'exception' => $e
 			] );
 			$this->getOutput()->addHTML(
-				wfMessage( 'math-wikibase-special-error-unknown' )->inContentLanguage()
+				wfMessage( 'math-wikibase-special-error-unknown' )->inContentLanguage()->parse()
 			);
 		}
 	}
@@ -159,18 +151,19 @@ class SpecialMathWikibase extends SpecialPage {
 	public static function buildPageRepresentation(
 		MathWikibaseInfo $info,
 		$qid,
-		OutputPage $output ) {
+		OutputPage $output
+	) {
 		$output->setPageTitle( $info->getLabel() );
 
 		// if 'instance of' is specified, it can be found in the description before a colon
-		preg_match( '/(.*):\s*(.*)/', $info->getDescription(), $matches );
-
-		if ( count( $matches ) > 1 ) {
+		// FIXME: There are other reasons to have a colon in an Item's description, e.g.
+		// https://www.wikidata.org/wiki/Special:MathWikibase?qid=Q6203
+		if ( preg_match( '/(.*):\s*(.*)/', $info->getDescription(), $matches ) ) {
 			$output->setSubtitle( $matches[1] );
 		}
 
 		// add formula information
-		$header = wfMessage( 'math-wikibase-formula-information' )->inContentLanguage();
+		$header = wfMessage( 'math-wikibase-formula-information' )->inContentLanguage()->plain();
 		$output->addHTML( self::createHTMLHeader( $header ) );
 
 		if ( $info->getSymbol() ) {
@@ -180,44 +173,39 @@ class SpecialMathWikibase extends SpecialPage {
 				wfMessage( 'math-wikibase-formula' )->inContentLanguage(),
 				$math
 			);
-			$output->addHTML( Html::rawElement( "p", [], $formulaInfo->inContentLanguage() ) );
+			$output->addHTML( Html::rawElement( "p", [], $formulaInfo->inContentLanguage()->parse() ) );
 		}
 
 		$labelName = wfMessage(
 			'math-wikibase-formula-header-format',
 			wfMessage( 'math-wikibase-formula-name' )->inContentLanguage(),
 			$info->getLabel()
-		)->inContentLanguage();
+		)->inContentLanguage()->parse();
 		$output->addHTML( Html::rawElement( "p", [], $labelName ) );
 
-		if ( count( $matches ) > 2 ) {
+		if ( isset( $matches[2] ) ) {
 			$labelType = wfMessage(
 				'math-wikibase-formula-header-format',
 				wfMessage( 'math-wikibase-formula-type' )->inContentLanguage(),
 				$matches[1]
-			)->inContentLanguage();
-
-			$labelDesc = wfMessage(
-				'math-wikibase-formula-header-format',
-				wfMessage( 'math-wikibase-formula-description' )->inContentLanguage(),
-				$matches[2]
-			)->inContentLanguage();
-
+			)->inContentLanguage()->parse();
 			$output->addHTML( Html::rawElement( "p", [], $labelType ) );
-			$output->addHTML( Html::rawElement( "p", [], $labelDesc ) );
+
+			$description = $matches[2];
 		} else {
-			$labelDesc = wfMessage(
-				'math-wikibase-formula-header-format',
-				wfMessage( 'math-wikibase-formula-description' )->inContentLanguage(),
-				$info->getDescription()
-			)->inContentLanguage();
-			$output->addHTML( Html::rawElement( "p", [], $labelDesc ) );
+			$description = $info->getDescription();
 		}
+		$labelDesc = wfMessage(
+			'math-wikibase-formula-header-format',
+			wfMessage( 'math-wikibase-formula-description' )->inContentLanguage(),
+			$description
+		)->inContentLanguage()->parse();
+		$output->addHTML( Html::rawElement( "p", [], $labelDesc ) );
 
 		// add parts of formula
 		if ( $info->hasParts() ) {
 			$elementsHeader = wfMessage( 'math-wikibase-formula-elements-header' )
-				->inContentLanguage()->escaped();
+				->inContentLanguage()->plain();
 			$output->addHTML( self::createHTMLHeader( $elementsHeader ) );
 			$output->addHTML( $info->generateTableOfParts() );
 		}
@@ -226,7 +214,7 @@ class SpecialMathWikibase extends SpecialPage {
 		$wikibaseHeader = wfMessage(
 			'math-wikibase-formula-link-header',
 			$info->getDescription()
-		)->inContentLanguage();
+		)->inContentLanguage()->plain();
 
 		$output->addHTML( self::createHTMLHeader( $wikibaseHeader ) );
 
@@ -236,15 +224,15 @@ class SpecialMathWikibase extends SpecialPage {
 	}
 
 	/**
-	 * Generates a header as HTML
-	 * @param string $header
-	 * @return string
+	 * @param string $header Plain text
+	 * @return string Raw HTML
 	 */
-	private static function createHTMLHeader( $header ) {
-		$headerOut = Html::openElement( "h2" );
-		$headerOut .= Html::rawElement( "span", [ "class" => "mw-headline" ], $header );
-		$headerOut .= Html::closeElement( "h2" );
-		return $headerOut;
+	private static function createHTMLHeader( string $header ) : string {
+		return Html::rawElement(
+			'h2',
+			[],
+			Html::element( 'span', [ 'class' => 'mw-headline' ], $header )
+		);
 	}
 
 	/**

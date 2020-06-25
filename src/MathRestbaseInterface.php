@@ -7,6 +7,7 @@
  */
 
 use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
 use Psr\Log\LoggerInterface;
 
 class MathRestbaseInterface {
@@ -129,10 +130,10 @@ class MathRestbaseInterface {
 		$serviceClient = $this->getServiceClient();
 		$response = $serviceClient->run( $request );
 		if ( $response['code'] !== 200 ) {
-			$this->log()->info( 'Tex check failed:', [
-					'post'  => $request['body'],
-					'error' => $response['error'],
-					'url'   => $request['url']
+			$this->log()->info( 'Tex check failed', [
+				'post'  => $request['body'],
+				'error' => $response['error'],
+				'urlparams'   => $request['url']
 			] );
 		}
 		return $response;
@@ -171,7 +172,8 @@ class MathRestbaseInterface {
 	 */
 	private function getServiceClient() {
 		global $wgVirtualRestConfig, $wgMathConcurrentReqs;
-		$http = new MultiHttpClient( [ 'maxConnsPerHost' => $wgMathConcurrentReqs ] );
+		$http = MediaWikiServices::getInstance()->getHttpRequestFactory()->createMultiClient(
+			[ 'maxConnsPerHost' => $wgMathConcurrentReqs ] );
 		$serviceClient = new VirtualRESTServiceClient( $http );
 		if ( isset( $wgVirtualRestConfig['modules']['restbase'] ) ) {
 			$cfg = $wgVirtualRestConfig['modules']['restbase'];
@@ -273,7 +275,7 @@ class MathRestbaseInterface {
 
 		try {
 			$url = $testInterface->getFullSvgUrl();
-			$req = MWHttpRequest::factory( $url );
+			$req = MediaWikiServices::getInstance()->getHttpRequestFactory()->create( $url, [], __METHOD__ );
 			$status = $req->execute();
 			if ( $status->isOK() ) {
 				return true;
@@ -372,8 +374,8 @@ class MathRestbaseInterface {
 		$request = [
 				'method' => 'POST',
 				'body'   => [
-						'type' => $this->type,
-						'q'    => $this->tex
+					'type' => $this->type,
+					'q'    => $this->tex
 				],
 				'url'    => $this->getUrl( "media/math/check/{$this->type}" )
 		];
@@ -451,8 +453,8 @@ class MathRestbaseInterface {
 		}
 		// Remove "convenience" duplicate keys put in place by MultiHttpClient
 		unset( $response[0], $response[1], $response[2], $response[3], $response[4] );
-		$this->log()->error( 'Restbase math server problem:', [
-			'url' => $request['url'],
+		$this->log()->error( 'Restbase math server problem', [
+			'urlparams' => $request['url'],
 			'response' => [ 'code' => $response['code'], 'body' => $response['body'] ],
 			'math_type' => $type,
 			'tex' => $this->tex

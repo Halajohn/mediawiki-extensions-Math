@@ -13,8 +13,8 @@ use Wikimedia\Purtle\NTriplesRdfWriter;
  * @author Moritz Schubotz (physikerwelt)
  */
 class MathMLRdfBuilderTest extends MediaWikiTestCase {
-	const ACME_PREFIX_URL = 'http://acme/';
-	const ACME_REF = 'testing';
+	private const ACME_PREFIX_URL = 'http://acme/';
+	private const ACME_REF = 'testing';
 	protected static $hasRestbase;
 
 	public static function setUpBeforeClass() : void {
@@ -54,18 +54,21 @@ class MathMLRdfBuilderTest extends MediaWikiTestCase {
 
 	public function testValidInput() {
 		$triples = $this->makeCase( 'a^2' );
-		$this->assertContains( self::ACME_PREFIX_URL . self::ACME_REF . '> "<math', $triples );
-		$this->assertContains( '<mi>a</mi>\n', $triples );
-		$this->assertContains( '<mn>2</mn>\n', $triples );
-		$this->assertContains( 'a^{2}', $triples );
-		$this->assertContains( '^^<http://www.w3.org/1998/Math/MathML> .', $triples );
+		$this->assertStringContainsString(
+			self::ACME_PREFIX_URL . self::ACME_REF . '> "<math',
+			$triples
+		);
+		$this->assertStringContainsString( '<mi>a</mi>\n', $triples );
+		$this->assertStringContainsString( '<mn>2</mn>\n', $triples );
+		$this->assertStringContainsString( 'a^{2}', $triples );
+		$this->assertStringContainsString( '^^<http://www.w3.org/1998/Math/MathML> .', $triples );
 	}
 
 	public function testInvalidInput() {
 		$triples = $this->makeCase( '\notExists' );
-		$this->assertContains( '<math', $triples );
-		$this->assertContains( 'unknown function', $triples );
-		$this->assertContains( 'notExists', $triples );
-		$this->assertContains( '^^<http://www.w3.org/1998/Math/MathML> .', $triples );
+		$this->assertStringContainsString( '<math', $triples );
+		$this->assertStringContainsString( 'unknown function', $triples );
+		$this->assertStringContainsString( 'notExists', $triples );
+		$this->assertStringContainsString( '^^<http://www.w3.org/1998/Math/MathML> .', $triples );
 	}
 }

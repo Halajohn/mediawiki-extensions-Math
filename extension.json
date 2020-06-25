@@ -14,7 +14,7 @@
 	"callback": "MathHooks::registerExtension",
 	"type": "parserhook",
 	"requires": {
-		"MediaWiki": ">= 1.32.0"
+		"MediaWiki": ">= 1.35.0"
 	},
 	"AutoloadClasses": {
 		"MathMathSymbolsDataModule": "src/MathMathSymbolsDataModule.php",
@@ -26,8 +26,6 @@
 		"MathMathML": "src/MathMathML.php",
 		"MathMathMLCli": "src/MathMathMLCli.php",
 		"MathLaTeXML": "MathLaTeXML.php",
-		"MathInputCheck": "src/MathInputCheck.php",
-		"MathInputCheckRestbase": "src/MathInputCheckRestbase.php",
 		"SpecialMathShowImage": "src/SpecialMathShowImage.php",
 		"SpecialMathStatus": "src/SpecialMathStatus.php",
 		"SpecialMathWikibase": "src/SpecialMathWikibase.php",
@@ -40,6 +38,10 @@
 		"MathWikibaseConfig": "src/MathWikibaseConfig.php",
 		"MathWikibaseConnector": "src/MathWikibaseConnector.php",
 		"MathWikibaseInfo": "src/MathWikibaseInfo.php"
+	},
+	"AutoloadNamespaces": {
+		"MediaWiki\\Extension\\Math\\InputCheck\\": "src/InputCheck",
+		"MediaWiki\\Extension\\Math\\Rest\\": "src/Rest"
 	},
 	"TestAutoloadClasses": {
 		"MathMLHttpRequestTester": "tests/phpunit/MathMLHttpRequestTester.php",
@@ -54,82 +56,100 @@
 		"MathAliasNoTranslate": "Math.alias.noTranslate.php"
 	},
 	"Hooks": {
-		"ParserFirstCallInit": [
-			"MathHooks::onParserFirstCallInit"
-		],
-		"GetPreferences": [
-			"MathHooks::onGetPreferences"
-		],
-		"LoadExtensionSchemaUpdates": [
-			"MathHooks::onLoadExtensionSchemaUpdates"
-		],
-		"ParserTestTables": [
-			"MathHooks::onParserTestTables"
-		],
-		"PageRenderingHash": [
-			"MathHooks::onPageRenderingHash"
-		],
-		"WikibaseClientDataTypes": [
-			"MathWikibaseHook::onWikibaseClientDataTypes"
-		],
-		"WikibaseRepoDataTypes": [
-			"MathWikibaseHook::onWikibaseRepoDataTypes"
-		],
-		"ParserAfterTidy": [
-			"MathHooks::onParserAfterTidy"
-		],
-		"SpecialPage_initList": [
-			"MathHooks::onSpecialPage_initList"
-		]
+		"ParserFirstCallInit": "MathHooks::onParserFirstCallInit",
+		"GetPreferences": "MathHooks::onGetPreferences",
+		"LoadExtensionSchemaUpdates": "MathHooks::onLoadExtensionSchemaUpdates",
+		"ParserTestTables": "MathHooks::onParserTestTables",
+		"PageRenderingHash": "MathHooks::onPageRenderingHash",
+		"WikibaseClientDataTypes": "MathWikibaseHook::onWikibaseClientDataTypes",
+		"WikibaseRepoDataTypes": "MathWikibaseHook::onWikibaseRepoDataTypes",
+		"ParserAfterTidy": "MathHooks::onParserAfterTidy",
+		"SpecialPage_initList": "MathHooks::onSpecialPage_initList"
 	},
 	"config": {
 		"MathDefaultLaTeXMLSetting": {
-			"format": "xhtml",
-			"whatsin": "math",
-			"whatsout": "math",
-			"0": "pmml",
-			"1": "cmml",
-			"2": "mathtex",
-			"3": "nodefaultresources",
-			"preload": [
-				"LaTeX.pool",
-				"article.cls",
-				"amsmath.sty",
-				"amsthm.sty",
-				"amstext.sty",
-				"amssymb.sty",
-				"eucal.sty",
-				"[dvipsnames]xcolor.sty",
-				"url.sty",
-				"hyperref.sty",
-				"[ids]latexml.sty",
-				"texvc"
-			],
-			"linelength": 90
+			"value": {
+				"format": "xhtml",
+				"whatsin": "math",
+				"whatsout": "math",
+				"0": "pmml",
+				"1": "cmml",
+				"2": "mathtex",
+				"3": "nodefaultresources",
+				"preload": [
+					"LaTeX.pool",
+					"article.cls",
+					"amsmath.sty",
+					"amsthm.sty",
+					"amstext.sty",
+					"amssymb.sty",
+					"eucal.sty",
+					"[dvipsnames]xcolor.sty",
+					"url.sty",
+					"hyperref.sty",
+					"[ids]latexml.sty",
+					"texvc"
+				],
+				"linelength": 90
+			}
 		},
-		"MathDisableTexFilter": "new",
-		"MathEnableExperimentalInputFormats": false,
-		"MathLaTeXMLTimeout": 240,
-		"MathLaTeXMLUrl": "http://gw125.iu.xsede.org:8888",
-		"MathMathMLTimeout": 20,
-		"MathMathMLUrl": "https://mathoid-beta.wmflabs.org",
-		"MathFullRestbaseURL": "https://wikimedia.org/api/rest_",
-		"MathConcurrentReqs": 50,
-		"MathoidCli": false,
-		"MathValidModes": [
-			"png",
-			"source",
-			"mathml"
-		],
-		"MathEnableWikibaseDataType": true,
-		"MathEnableFormulaLinks": true,
-		"MathWikibasePropertyIdHasPart": "P527",
-		"MathWikibasePropertyIdDefiningFormula": "P2534",
-		"MathWikibasePropertyIdQuantitySymbol": "P416"
+		"MathDisableTexFilter": {
+			"value": "new"
+		},
+		"MathEnableExperimentalInputFormats": {
+			"value": false
+		},
+		"MathLaTeXMLTimeout": {
+			"value": 240
+		},
+		"MathLaTeXMLUrl": {
+			"value": "https://latexml.formulasearchengine.com/convert"
+		},
+		"MathMathMLTimeout": {
+			"value": 20
+		},
+		"MathMathMLUrl": {
+			"value": "https://mathoid-beta.wmflabs.org"
+		},
+		"MathFullRestbaseURL": {
+			"value": "https://wikimedia.org/api/rest_"
+		},
+		"MathConcurrentReqs": {
+			"value": 50
+		},
+		"MathoidCli": {
+			"value": false
+		},
+		"MathValidModes": {
+			"value": [
+				"png",
+				"source",
+				"mathml"
+			]
+		},
+		"MathEnableWikibaseDataType": {
+			"value": true
+		},
+		"MathEnableFormulaLinks": {
+			"value": true
+		},
+		"MathWikibasePropertyIdHasPart": {
+			"value": "P527"
+		},
+		"MathWikibasePropertyIdDefiningFormula": {
+			"value": "P2534"
+		},
+		"MathWikibasePropertyIdQuantitySymbol": {
+			"value": "P416"
+		}
 	},
-	"VisualEditorPluginModules": [
-		"ext.math.visualEditor"
-	],
+	"attributes": {
+		"VisualEditor": {
+			"PluginModules": [
+				"ext.math.visualEditor"
+			]
+		}
+	},
 	"MessagesDirs": {
 		"Math": [
 			"i18n",
@@ -277,5 +297,18 @@
 		"math-tracking-category-error",
 		"math-tracking-category-render-error"
 	],
-	"manifest_version": 1
+	"ServiceWiringFiles": [
+		"ServiceWiring.php"
+	],
+	"RestRoutes": [
+		{
+			"path": "/math/v0/check/{type}",
+			"method": "POST",
+			"class": "MediaWiki\\Extension\\Math\\Rest\\CheckHandler",
+			"services": [
+				"Math.CheckerFactory"
+			]
+		}
+	],
+	"manifest_version": 2
 }

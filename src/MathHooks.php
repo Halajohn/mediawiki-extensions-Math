@@ -15,7 +15,7 @@ class MathHooks {
 	 */
 	private static $tags = [];
 
-	const MATHCACHEKEY = 'math=';
+	private const MATHCACHEKEY = 'math=';
 
 	public static function mathConstantToString( $value, array $defs, $prefix, $default ) {
 		foreach ( $defs as $defKey => $defValue ) {
@@ -151,7 +151,7 @@ class MathHooks {
 	/**
 	 * Register the <math> tag with the Parser.
 	 *
-	 * @param Parser $parser instance of Parser
+	 * @param Parser $parser
 	 * @return bool true
 	 */
 	public static function onParserFirstCallInit( $parser ) {
